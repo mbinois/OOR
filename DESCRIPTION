@@ -13,4 +13,6 @@ Description: Implementation of optimistic optimization methods for global optimi
 License: LGPL
 Depends:
     methods
+URL: http://github.com/mbinois/OOR
+BugReports: http://github.com/mbinois/OOR/issues
 RoxygenNote: 7.1.0
