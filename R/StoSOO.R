@@ -86,8 +86,7 @@
 #'
 
 
-StoSOLSE <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, length(par)), nb_iter, 
-                     control = list(verbose = 0, type = "sto", max = FALSE, light = TRUE)){
+StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, length(par)), nb_iter, control = list(verbose = 0, type = "sto", max = FALSE, light = TRUE)){
   ## Default values of the control.
   control$nb_iter <- nb_iter
 
@@ -219,8 +218,7 @@ StoSOLSE <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, l
               t[[h]]$values <- c(t[[h]]$values, sampled_value) # just for tracing
               t[[h]]$sums[i_max] <- t[[h]]$sums[i_max] + sampled_value # sample the function at xx
               t[[h]]$ks[i_max] <- t[[h]]$ks[i_max] + 1 # increment the count
-              # t[[h]]$bs[i_max] <- t[[h]]$sums[i_max]/t[[h]]$ks[i_max] + sqrt(UCBK/t[[h]]$ks[i_max]) # update b
-              t[[h]]$bs[i_max] <- - abs(t[[h]]$sums[i_max]/t[[h]]$ks[i_max]) + sqrt(UCBK/t[[h]]$ks[i_max]) # update b
+              t[[h]]$bs[i_max] <- t[[h]]$sums[i_max]/t[[h]]$ks[i_max] + sqrt(UCBK/t[[h]]$ks[i_max]) # update b
 
               n <- n + 1
 
