@@ -156,6 +156,9 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   t[[1]]$ks <- 1
   t[[1]]$bs <- t[[1]]$sums + sqrt(UCBK)
   t[[1]]$values <- t[[1]]$sums
+  
+  Xs <- t[[1]]$x
+  ys <- t[[1]]$sums
 
   ## execution
   finaly <- -Inf # for deterministic case
@@ -211,6 +214,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
             xx <- t[[h]]$x[i_max,]
             if(t[[h]]$ks[i_max] < control$k_max){
               sampled_value <- f(xx)
+              Xs <- rbind(Xs, xx)
+              ys <- c(ys, sampled_value)
               if(sampled_value > finaly){
                 finalx <- xx
                 finaly <- sampled_value
@@ -244,6 +249,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
               t[[h+1]]$x <- rbind(t[[h+1]]$x, as.vector(x_g))
               if(control$sample_when_created){
                 sampled_value <- f(x_g)
+                Xs <- rbind(Xs, x_g)
+                ys <- c(ys, sampled_value)
                 if(sampled_value > finaly){
                   finalx <- x_g
                   finaly <- sampled_value
@@ -278,6 +285,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
               t[[h+1]]$x <- rbind(t[[h+1]]$x, as.vector(x_d))
               if(control$sample_when_created){
                 sampled_value <- f(x_d)
+                Xs <- rbind(Xs, x_d)
+                ys <- c(ys, sampled_value)
                 if(sampled_value > finaly){
                   finalx <- x_d
                   finaly <- sampled_value
@@ -356,6 +365,6 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   if(control$light)
     return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly))
 
-  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t))
+  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = ys))
 }
 
