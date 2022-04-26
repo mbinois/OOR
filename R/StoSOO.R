@@ -175,8 +175,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
     at_least_one <- 0
 
     for(h in 1:control$h_max){ # traverse the whole tree, depth by depth
-      #       if(n > control$nb_iter)
-      #         break
+            if(n > control$nb_iter)
+              break
       i_max <- -1
       b_hi_max <- -Inf
 
