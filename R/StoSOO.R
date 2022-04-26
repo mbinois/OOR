@@ -324,8 +324,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
               t[[h + 1]]$bs <- c(t[[h + 1]]$bs, t[[h]]$bs[i_max])
               newmin <- t[[h]]$x_min[i_max,]
               newmax <- t[[h]]$x_max[i_max,]
-              newmin[splitd] <- (2*t[[h]]$x_min[i_max] + t[[h]]$x_max[i_max])/3
-              newmax[splitd] <- (t[[h]]$x_min[i_max] + 2*t[[h]]$x_max[i_max])/3
+              newmin[splitd] <- (2*t[[h]]$x_min[i_max, splitd] + t[[h]]$x_max[i_max, splitd])/3
+              newmax[splitd] <- (t[[h]]$x_min[i_max, splitd] + 2*t[[h]]$x_max[i_max, splitd])/3
               t[[h + 1]]$x_min <- rbind(t[[h + 1]]$x_min, as.vector(newmin))
               t[[h + 1]]$x_max <- rbind(t[[h + 1]]$x_max, as.vector(newmax))
               t[[h + 1]]$new <- c(t[[h + 1]]$new, 1)
