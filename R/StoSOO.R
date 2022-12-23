@@ -26,6 +26,17 @@
 #' \item \code{value} value of \code{fn} at \code{par},
 #' \item \code{tree} search tree built during the execution, not returned unless \code{control$light == TRUE}.
 #' }
+#' @details 
+#' The optional \code{tree} element returned is a list, whose first element is the root node and the last element the deepest nodes.
+#' A each level, \code{x} provides the center(s), one per row, whose corresponding bounds are given by \code{x_min} and \code{x_max}. Then:
+#' \itemize{
+#' \item \code{leaf} indicates if \code{x} is a leaf (1 if \code{TRUE});
+#' \item \code{new} indicates if \code{x} has been sampled last;
+#' \item \code{sums} gives the sum of values at \code{x};
+#' \item \code{bs} is for the upper bounds at \code{x};
+#' \item \code{ks} is the number of evaluations at \code{x};
+#' \item \code{values} stores the values evaluated as they come (mostly useful in the deterministic case)
+#' }
 #' @export
 #' @author M. Binois (translation in R code), M. Valko, A. Carpentier, R. Munos (Matlab code)
 #' @references
