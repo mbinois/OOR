@@ -52,6 +52,18 @@ via the Stochastic-Simultaneous Optimistic Optimisation algorithm.
 The deterministic-SOO method is available for noiseless observations.
 The knowledge of the function's smoothness is not required.
 }
+\details{
+The optional \code{tree} element returned is a list, whose first element is the root node and the last element the deepest nodes.
+A each level, \code{x} provides the center(s), one per row, whose corresponding bounds are given by \code{x_min} and \code{x_max}. Then:
+\itemize{
+\item \code{leaf} indicates if \code{x} is a leaf (1 if \code{TRUE});
+\item \code{new} indicates if \code{x} has been sampled last;
+\item \code{sums} gives the sum of values at \code{x};
+\item \code{bs} is for the upper bounds at \code{x};
+\item \code{ks} is the number of evaluations at \code{x};
+\item \code{values} stores the values evaluated as they come (mostly useful in the deterministic case)
+}
+}
 \examples{
 #------------------------------------------------------------
 # Example 1 : Deterministic optimization with SOO
@@ -101,6 +113,26 @@ plot.axes = {axis(1); axis(2); points(Xgrid[which.min(ref),, drop = FALSE], pch 
              points(Sol3$par[1],Sol3$par[2], pch = 13)})
 
 
+#------------------------------------------------------------
+# Example 4 : Deterministic optimization with StoSOO, 2-dimensional function with plots
+#------------------------------------------------------------
+set.seed(42)
+
+## 2-dimensional noiseless objective function, defined on [0, pi/4]^2
+fun4 <- function(x){return(-sin1(x[1]) * sin1(1 - x[2]))}
+
+## Optimizing
+Sol4 <- StoSOO(par = rep(NA, 2), fn = fun4, upper = rep(pi/4, 2), nb_iter = 1000,
+  control = list(type = 'det', light = FALSE))
+
+## Display solution
+xgrid <- seq(0, pi/4, length.out = 101)
+Xgrid <- expand.grid(xgrid, xgrid)
+ref <- apply(Xgrid, 1, function(x){(-sin1(x[1]) * sin1(1 - x[2]))})
+filled.contour(xgrid, xgrid, matrix(ref, 101), color.palette  = terrain.colors,
+plot.axes = {axis(1); axis(2); plotStoSOO(Sol4, add = TRUE, upper = rep(pi/4, 2));
+             points(Xgrid[which.min(ref),, drop = FALSE], pch = 21);
+             points(Sol4$par[1], Sol4$par[2], pch = 13, col = 2)})
 }
 \references{
 R. Munos (2011), Optimistic optimization of deterministic functions without the knowledge of its smoothness,

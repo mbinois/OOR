@@ -95,8 +95,26 @@
 #'              points(Sol3$par[1],Sol3$par[2], pch = 13)})
 #'
 #'
-
-
+#' #------------------------------------------------------------
+#' # Example 4 : Deterministic optimization with StoSOO, 2-dimensional function with plots
+#' #------------------------------------------------------------
+#' set.seed(42)
+#'
+#' ## 2-dimensional noiseless objective function, defined on [0, pi/4]^2
+#' fun4 <- function(x){return(-sin1(x[1]) * sin1(1 - x[2]))}
+#'
+#' ## Optimizing
+#' Sol4 <- StoSOO(par = rep(NA, 2), fn = fun4, upper = rep(pi/4, 2), nb_iter = 1000,
+#'   control = list(type = 'det', light = FALSE))
+#'
+#' ## Display solution
+#' xgrid <- seq(0, pi/4, length.out = 101)
+#' Xgrid <- expand.grid(xgrid, xgrid)
+#' ref <- apply(Xgrid, 1, function(x){(-sin1(x[1]) * sin1(1 - x[2]))})
+#' filled.contour(xgrid, xgrid, matrix(ref, 101), color.palette  = terrain.colors,
+#' plot.axes = {axis(1); axis(2); plotStoSOO(Sol4, add = TRUE, upper = rep(pi/4, 2));
+#'              points(Xgrid[which.min(ref),, drop = FALSE], pch = 21);
+#'              points(Sol4$par[1], Sol4$par[2], pch = 13, col = 2)})
 StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, length(par)), nb_iter, control = list(verbose = 0, type = "sto", max = FALSE, light = TRUE)){
   ## Default values of the control.
   control$nb_iter <- nb_iter
@@ -378,4 +396,59 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 
   return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = ys))
 }
+
+#' Plot bivariate tree structure obtained when running \code{\link[OOR]{StoSOO}}
+#' @title Plot 2-D \code{\link[OOR]{StoSOO}} result
+#' @param sol outcome of running \code{\link[OOR]{StoSOO}}, with \code{control$light} set to \code{FALSE}
+#' @param levels which levels to print. Default to all levels
+#' @param add if \code{TRUE}, use existing plot
+#' @param cpch \code{\link[base]{pch}} code for the centers
+#' @param lcol color at each level, or a single color for all levels (default)
+#' @param lower,upper vectors of bounds on the variables.
+#' @export
+#' @examples 
+#' #------------------------------------------------------------
+#' # Example: Deterministic optimization with StoSOO, 2-dimensional function
+#' #------------------------------------------------------------
+#' set.seed(42)
+#' 
+#' ## 2-dimensional noiseless objective function, defined on [0, pi/4]^2
+#' fun <- function(x){return(-sin1(x[1]) * sin1(1 - x[2]))}
+#' 
+#' ## Optimizing
+#' Sol <- StoSOO(par = rep(NA, 2), fn = fun, upper = rep(pi/4, 2), nb_iter = 1000,
+#'   control = list(type = 'det', light = FALSE))
+#'   
+#' ## Display solution
+#' plotStoSOO(Sol, upper = rep(pi/4, 2))
+plotStoSOO <- function(sol, lower = rep(0, 2), upper = rep(1, 2), levels = NULL,
+                       add = FALSE, cpch = '.', lcols = 1){
+  if(length(sol$par) > 2) stop(paste("Cannot plot results in dimension", length(sol$par)))
+  
+ # 2D case
+  if(!add){
+    plot(NA, xlim = c(lower[1], upper[1]), ylim = c(lower[2], upper[2]), 
+         xlab =  expression(x[1]), ylab = expression(x[2]))
+  }
+  
+  if(is.null(levels)) levels <- 1:length(sol$tree)
+  if(length(lcols) == 1) lcols <- rep(lcols, length(levels))
+  for(level in levels){
+    if(is.null(dim(sol$tree[[level]]$x))) break
+    points(sol$tree[[level]]$x %*% diag(upper - lower) + matrix(lower, nrow(sol$tree[[level]]$x), 2, byrow = TRUE), 
+           pch = cpch)
+
+    for(i in 1:nrow(sol$tree[[level]]$x)){
+      lines(x = c(sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_max[i,1],
+                  sol$tree[[level]]$x_max[i, 1], sol$tree[[level]]$x_min[i, 1]) * (upper[1] - lower[1]) + lower[1],
+            y = c(sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_max[i, 2], sol$tree[[level]]$x_max[i, 2],
+                  sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_min[i, 2]) * (upper[2] - lower[2]) + lower[2],
+            col = lcols[level])
+    }
+    
+  }
+}
+
+
+
 
