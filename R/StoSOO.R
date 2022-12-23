@@ -402,10 +402,11 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 #' @param sol outcome of running \code{\link[OOR]{StoSOO}}, with \code{control$light} set to \code{FALSE}
 #' @param levels which levels to print. Default to all levels
 #' @param add if \code{TRUE}, use existing plot
-#' @param cpch \code{\link[base]{pch}} code for the centers
-#' @param lcol color at each level, or a single color for all levels (default)
+#' @param cpch \code{\link[graphics]{pch}} code for the centers
+#' @param lcols color at each level, or a single color for all levels (default)
 #' @param lower,upper vectors of bounds on the variables.
 #' @export
+#' @importFrom graphics lines points
 #' @examples 
 #' #------------------------------------------------------------
 #' # Example: Deterministic optimization with StoSOO, 2-dimensional function
