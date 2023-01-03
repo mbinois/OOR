@@ -394,7 +394,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   if(control$light)
     return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly))
 
-  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = ys))
+  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = fnscale * ys))
 }
 
 #' Plot bivariate tree structure obtained when running \code{\link[OOR]{StoSOO}}
