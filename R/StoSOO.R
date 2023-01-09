@@ -184,7 +184,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   t[[1]]$sums <- f(t[[1]]$x)
   t[[1]]$ks <- 1
   t[[1]]$bs <- t[[1]]$sums + sqrt(UCBK)
-  t[[1]]$values <- t[[1]]$sums
+  t[[1]]$values <- list(t[[1]]$sums)
   
   Xs <- t[[1]]$x
   ys <- t[[1]]$sums
@@ -249,7 +249,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
                 finalx <- xx
                 finaly <- sampled_value
               }
-              t[[h]]$values <- c(t[[h]]$values, sampled_value) # just for tracing
+              t[[h]]$values[[i_max]] <- c(t[[h]]$values[[i_max]], sampled_value) # just for tracing
               t[[h]]$sums[i_max] <- t[[h]]$sums[i_max] + sampled_value # sample the function at xx
               t[[h]]$ks[i_max] <- t[[h]]$ks[i_max] + 1 # increment the count
               t[[h]]$bs[i_max] <- t[[h]]$sums[i_max]/t[[h]]$ks[i_max] + sqrt(UCBK/t[[h]]$ks[i_max]) # update b
@@ -380,6 +380,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   if(control$type == "sto"){
     for(h in control$h_max:1){
       if(length(t[[h]]$leaf) == 0){
+        t[[h]] <- NULL
       }else{
         final_idx <- which(t[[h]]$leaf == 0)
         if(length(final_idx) != 0){
@@ -425,6 +426,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 plotStoSOO <- function(sol, lower = rep(0, 2), upper = rep(1, 2), levels = NULL,
                        add = FALSE, cpch = '.', lcols = 1){
   if(length(sol$par) > 2) stop(paste("Cannot plot results in dimension", length(sol$par)))
+  if(is.null(sol$tree)) warning("No tree in sol, perhaps use light = TRUE in control.")
   
  # 2D case
   if(!add){
