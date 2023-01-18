@@ -118,50 +118,50 @@
 StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, length(par)), nb_iter, control = list(verbose = 0, type = "sto", max = FALSE, light = TRUE)){
   ## Default values of the control.
   control$nb_iter <- nb_iter
-
+  
   if(is.null(control$verbose)){
     control$verbose <- 0
   }
   verbose <- control$verbose
-
+  
   if(is.null(control$k_max)){
     control$k_max <- ceiling(nb_iter/log(nb_iter)^3)
   }
-
+  
   control$sample_when_created <- 1
-
+  
   if(is.null(control$type)){
     control$type <- "sto"
   }
-
+  
   if(is.null(control$delta)){
     control$delta <- 1/sqrt(nb_iter)
   }
-
+  
   if(control$type == "det"){
     control$k_max <- 1
     if(is.null(control$h_max)){
       control$h_max <- ceiling(sqrt(nb_iter))
     }
   }
-
+  
   if(is.null(control$h_max)){
     control$h_max <- ceiling(sqrt(nb_iter/control$k_max))
   }
-
+  
   d <- length(par)
   UCBK <- log((control$nb_iter)^2/control$delta)/2
-
+  
   if(is.null(control$max)) control$max <- FALSE
   if(is.null(control$light)) control$light <- TRUE
-
+  
   if(control$max) fnscale <- 1
   else fnscale <- -1
-
+  
   f <- function(par){
     fn(par * (upper - lower) + lower, ...)/fnscale
   }
-
+  
   ## Initialisation of the tree
   struct_list <- list()
   struct_list$x_min <- numeric(0)
@@ -173,9 +173,9 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   struct_list$bs <- numeric(0)
   struct_list$ks <- numeric(0)
   struct_list$values <- list()
-
+  
   t <- rep(list(struct_list), control$h_max)
-
+  
   t[[1]]$x_min <- matrix(0, 1, d)
   t[[1]]$x_max <- matrix(1, 1, d)
   t[[1]]$x <- matrix(0.5, 1, d)
@@ -188,7 +188,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   
   Xs <- t[[1]]$x
   ys <- t[[1]]$sums
-
+  
   ## execution
   finaly <- -Inf # for deterministic case
   at_least_one <- 1 # at least one leaf was selected
@@ -199,16 +199,16 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
     if(verbose > 1){
       cat("----- new pass ", n, "of ", control$nb_iter, " evaluations used ..", "\n")
     }
-
+    
     v_max <- -Inf
     at_least_one <- 0
-
+    
     for(h in 1:control$h_max){ # traverse the whole tree, depth by depth
-            if(n > control$nb_iter)
-              break
+      if(n > control$nb_iter)
+        break
       i_max <- -1
       b_hi_max <- -Inf
-
+      
       if(!is.null(nrow(t[[h]]$x))){
         for(i in 1:nrow(t[[h]]$x)){ # find max UCB at depth h
           if(t[[h]]$leaf[i] == 1 & t[[h]]$new[i] == 0){
@@ -224,15 +224,15 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
           }
         }
       }
-
-
+      
+      
       # we found a maximum open the leaf (h,i_max)
       if(i_max > -1){
         if(verbose > 2)
           cat("max b-value for:", b_hi_max, "(", i_max, " of ", nrow(t[[h]]$x), ")..\n")
-
+        
         # Animations (TODO)
-
+        
         # check maximum depth constraint
         if((h + 1) > control$h_max){
           if(verbose > 0) cat("Attempt to go beyond maximum depth refused. \n")
@@ -253,27 +253,27 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
               t[[h]]$sums[i_max] <- t[[h]]$sums[i_max] + sampled_value # sample the function at xx
               t[[h]]$ks[i_max] <- t[[h]]$ks[i_max] + 1 # increment the count
               t[[h]]$bs[i_max] <- t[[h]]$sums[i_max]/t[[h]]$ks[i_max] + sqrt(UCBK/t[[h]]$ks[i_max]) # update b
-
+              
               n <- n + 1
-
+              
               if(verbose > 0){
                 cat(n, ": sampling (", h, ", ", i_max, "), for the ", t[[h]]$ks[i_max],
                     " time  (max = ", control$k_max, "), x =", xx, " f(x) = ", fnscale * sampled_value, "\n")
               }
             }else{
-
+              
               # the leaf becomes an inner node
               t[[h]]$leaf[i_max] <- 0
-
+              
               # we find the dimension to split, it will be the one with largest range
               splitd <- which.max(t[[h]]$x_max[i_max,] - t[[h]]$x_min[i_max,])
               x_g <- xx
               x_g[splitd] <- (5 * t[[h]]$x_min[i_max, splitd] + t[[h]]$x_max[i_max, splitd])/6
               x_d <- xx
               x_d[splitd] <- (t[[h]]$x_min[i_max, splitd] + 5 * t[[h]]$x_max[i_max, splitd])/6
-
+              
               # splits the leaf of the tree, if dim >1, splits along the largest dimension
-
+              
               # left node
               t[[h+1]]$x <- rbind(t[[h+1]]$x, as.vector(x_g))
               if(control$sample_when_created){
@@ -288,9 +288,9 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
                 t[[h + 1]]$sums <- c(t[[h + 1]]$sums, sampled_value)
                 t[[h + 1]]$bs <- c(t[[h + 1]]$bs, sampled_value + sqrt(UCBK))
                 t[[h + 1]]$values <- c(t[[h + 1]]$values, sampled_value)
-
+                
                 n <- n + 1
-
+                
                 if(verbose > 0){
                   cat(n, ": sampling (", h, ", ", i_max, "), for the ", t[[h]]$ks[i_max],
                       " time  (max = ", control$k_max, "), x =", xx, " f(x) = ", fnscale * sampled_value, "\n")
@@ -302,14 +302,14 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
                 t[[h + 1]]$bs <- c(t[[h + 1]]$bs, Inf)
                 # t[[h + 1]]$values <- c(t[[h + 1]]$values, sampled_value)
               }
-
+              
               t[[h + 1]]$x_min <- rbind(t[[h + 1]]$x_min, t[[h]]$x_min[i_max,])
               newmax <- t[[h]]$x_max[i_max,]
               newmax[splitd] <- (2 * t[[h]]$x_min[i_max, splitd] + t[[h]]$x_max[i_max, splitd])/3
               t[[h + 1]]$x_max <- rbind(t[[h + 1]]$x_max, as.vector(newmax))
               t[[h + 1]]$leaf <- c(t[[h + 1]]$leaf, 1)
               t[[h + 1 ]]$new <- c(t[[h + 1]]$new, 1)
-
+              
               # right node
               t[[h+1]]$x <- rbind(t[[h+1]]$x, as.vector(x_d))
               if(control$sample_when_created){
@@ -324,9 +324,9 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
                 t[[h + 1]]$sums <- c(t[[h + 1]]$sums, sampled_value)
                 t[[h + 1]]$bs <- c(t[[h + 1]]$bs, sampled_value + sqrt(UCBK))
                 t[[h + 1]]$values <- c(t[[h + 1]]$values, sampled_value)
-
+                
                 n <- n + 1
-
+                
                 if(verbose > 0){
                   cat(n, ": sampling (", h, ", ", i_max, "), for the ", t[[h]]$ks[i_max],
                       " time  (max = ", control$k_max, "), x =", xx, " f(x) = ", fnscale * sampled_value, "\n")
@@ -338,14 +338,14 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
                 t[[h + 1]]$bs <- c(t[[h + 1]]$bs, Inf)
                 # t[[h + 1]]$values <- c(t[[h + 1]]$values, sampled_value)
               }
-
+              
               newmin <- t[[h]]$x_min[i_max,]
               newmin[splitd] <- (t[[h]]$x_min[i_max, splitd] + 2*t[[h]]$x_max[i_max, splitd])/3
               t[[h + 1]]$x_min <- rbind(t[[h + 1]]$x_min, as.vector(newmin))
               t[[h + 1]]$x_max <- rbind(t[[h + 1]]$x_max, t[[h]]$x_max[i_max,])
               t[[h + 1]]$leaf <- c(t[[h + 1]]$leaf, 1)
               t[[h + 1]]$new <- c(t[[h + 1]]$new, 1)
-
+              
               # central node
               t[[h + 1]]$x <- rbind(t[[h + 1]]$x, as.vector(xx))
               t[[h + 1]]$ks <- c(t[[h + 1]]$ks, t[[h]]$ks[i_max])
@@ -360,7 +360,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
               t[[h + 1]]$new <- c(t[[h + 1]]$new, 1)
               t[[h + 1]]$leaf <- c(t[[h + 1]]$leaf, 1)
               t[[h + 1]]$values <- c(t[[h + 1]]$values, list(t[[h]]$values[[i_max]]))
-
+              
               # set the max Bvalue and increment the number of iteration
               v_max <- b_hi_max
             }
@@ -368,14 +368,14 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
         }
       }
     }
-
+    
     # mark old just created leafs as not new anymore
     for(h in 1:control$h_max){
       if(!is.null(nrow(t[[h]]$x)))
         t[[h]]$new <- rep(0, nrow(t[[h]]$x))
     }
   }
-
+  
   # get the deepest unexpanded node (and among all of those, pick a maximum)
   if(control$type == "sto"){
     for(h in control$h_max:1){
@@ -394,7 +394,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   }
   if(control$light)
     return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly))
-
+  
   return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = fnscale * ys))
 }
 
@@ -406,11 +406,27 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 #' @param cpch \code{\link[graphics]{pch}} code for the centers
 #' @param lcols color at each level, or a single color for all levels (default)
 #' @param lower,upper vectors of bounds on the variables.
+#' @param ylim vector of bounds, required in the 1d case
 #' @export
 #' @importFrom graphics lines points
 #' @examples 
 #' #------------------------------------------------------------
-#' # Example: Deterministic optimization with StoSOO, 2-dimensional function
+#' # Example 1 : Deterministic optimization with SOO, 1-dimensional function
+#' #------------------------------------------------------------
+#' ## Define objective
+#' fun1 <- function(x) return(-guirland(x))
+#' 
+#' ## Optimization
+#' Sol1 <- StoSOO(par = NA, fn = fun1, nb_iter = 1000, 
+#'   control = list(type = "det", verbose = 1, light = FALSE))
+#' 
+#' ## Display objective function and solution found
+#' curve(fun1, n = 1001, ylim = c(-1.3, 0))
+#' abline(v = Sol1$par, col = 'red')
+#' plotStoSOO(Sol1, ylim = c(-1.3, -1.1), add = TRUE)
+#' 
+#' #------------------------------------------------------------
+#' # Example 2 : Deterministic optimization with SOO, 2-dimensional function
 #' #------------------------------------------------------------
 #' set.seed(42)
 #' 
@@ -423,32 +439,60 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 #'   
 #' ## Display solution
 #' plotStoSOO(Sol, upper = rep(pi/4, 2))
-plotStoSOO <- function(sol, lower = rep(0, 2), upper = rep(1, 2), levels = NULL,
-                       add = FALSE, cpch = '.', lcols = 1){
+plotStoSOO <- function(sol, lower = rep(0, length(sol$par)), upper = rep(1, length(sol$par)), levels = NULL,
+                       add = FALSE, cpch = '.', lcols = 1, ylim = NULL){
   if(length(sol$par) > 2) stop(paste("Cannot plot results in dimension", length(sol$par)))
   if(is.null(sol$tree)) warning("No tree in sol, perhaps use light = TRUE in control.")
   
- # 2D case
-  if(!add){
-    plot(NA, xlim = c(lower[1], upper[1]), ylim = c(lower[2], upper[2]), 
-         xlab =  expression(x[1]), ylab = expression(x[2]))
-  }
-  
   if(is.null(levels)) levels <- 1:length(sol$tree)
   if(length(lcols) == 1) lcols <- rep(lcols, length(levels))
-  for(level in levels){
-    if(is.null(dim(sol$tree[[level]]$x))) break
-    points(sol$tree[[level]]$x %*% diag(upper - lower) + matrix(lower, nrow(sol$tree[[level]]$x), 2, byrow = TRUE), 
-           pch = cpch)
-
-    for(i in 1:nrow(sol$tree[[level]]$x)){
-      lines(x = c(sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_max[i,1],
-                  sol$tree[[level]]$x_max[i, 1], sol$tree[[level]]$x_min[i, 1]) * (upper[1] - lower[1]) + lower[1],
-            y = c(sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_max[i, 2], sol$tree[[level]]$x_max[i, 2],
-                  sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_min[i, 2]) * (upper[2] - lower[2]) + lower[2],
-            col = lcols[level])
+  
+  # 1D case
+  if(length(sol$par) == 1){
+    if(is.null(ylim)) stop("ylim is needed to define the y-scale.")
+    if(!add){
+      plot(NA, xlim = c(lower[1], upper[1]), ylim = ylim, 
+           xlab =  expression(x[1]), ylab = expression(f))
     }
     
+    for(level in levels){
+      if(is.null(dim(sol$tree[[level]]$x))) break
+      points(sol$tree[[level]]$x[,1] * (upper - lower) + lower, rep(ylim[1] + (level-0.5) * (ylim[2] - ylim[1]) / length(sol$tree), length(sol$tree[[level]]$x)), pch = cpch)
+      
+      for(i in 1:nrow(sol$tree[[level]]$x)){
+        lines(x = c(sol$tree[[level]]$x_min[i], sol$tree[[level]]$x_min[i]) * (upper[1] - lower[1]) + lower[1],
+              y = ylim[1] + (level - 1):level * (ylim[2] - ylim[1]) / length(sol$tree), 
+              col = lcols[level])
+        lines(x = c(sol$tree[[level]]$x_max[i], sol$tree[[level]]$x_max[i]) * (upper[1] - lower[1]) + lower[1],
+              y = ylim[1] + (level - 1):level * (ylim[2] - ylim[1]) / length(sol$tree), 
+              col = lcols[level])
+        lines(x = c(sol$tree[[level]]$x_min[i], sol$tree[[level]]$x_max[i]) * (upper[1] - lower[1]) + lower[1],
+              y = rep(ylim[1] + (level) * (ylim[2] - ylim[1]) / length(sol$tree), 2),
+              col = lcols[level])
+      }
+    }
+  }
+  
+  # 2D case
+  if(length(sol$par) == 2){
+    if(!add){
+      plot(NA, xlim = c(lower[1], upper[1]), ylim = c(lower[2], upper[2]), 
+           xlab =  expression(x[1]), ylab = expression(x[2]))
+    }
+    
+    for(level in levels){
+      if(is.null(dim(sol$tree[[level]]$x))) break
+      points(sol$tree[[level]]$x %*% diag(upper - lower) + matrix(lower, nrow(sol$tree[[level]]$x), 2, byrow = TRUE), 
+             pch = cpch)
+      
+      for(i in 1:nrow(sol$tree[[level]]$x)){
+        lines(x = c(sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_min[i, 1], sol$tree[[level]]$x_max[i,1],
+                    sol$tree[[level]]$x_max[i, 1], sol$tree[[level]]$x_min[i, 1]) * (upper[1] - lower[1]) + lower[1],
+              y = c(sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_max[i, 2], sol$tree[[level]]$x_max[i, 2],
+                    sol$tree[[level]]$x_min[i, 2], sol$tree[[level]]$x_min[i, 2]) * (upper[2] - lower[2]) + lower[2],
+              col = lcols[level])
+      }
+    }
   }
 }
 
