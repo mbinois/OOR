@@ -395,7 +395,8 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
   if(control$light)
     return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly))
   
-  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t, Xs = Xs, ys = fnscale * ys))
+  return(list(par = finalx * (upper - lower) + lower, value = fnscale * finaly, tree = t,
+              Xs = Xs %*% diag(upper - lower) + matrix(lower, nrow(Xs), d, byrow = TRUE), ys = fnscale * ys))
 }
 
 #' Plot bivariate tree structure obtained when running \code{\link[OOR]{StoSOO}}
@@ -403,7 +404,7 @@ StoSOO <- function(par, fn, ..., lower = rep(0, length(par)), upper = rep(1, len
 #' @param sol outcome of running \code{\link[OOR]{StoSOO}}, with \code{control$light} set to \code{FALSE}
 #' @param levels which levels to print. Default to all levels
 #' @param add if \code{TRUE}, use existing plot
-#' @param cpch \code{\link[graphics]{pch}} code for the centers
+#' @param cpch \code{\link[graphics]{points}} \code{pch} code for the centers
 #' @param lcols color at each level, or a single color for all levels (default)
 #' @param lower,upper vectors of bounds on the variables.
 #' @param ylim vector of bounds, required in the 1d case
