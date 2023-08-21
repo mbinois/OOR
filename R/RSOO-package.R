@@ -6,6 +6,7 @@
 #' @title Package OOR
 #' @docType package
 #' @name OOR
+#' @aliases OOR-package
 #' @references
 #' [1] R. Munos (2011), Optimistic optimization of deterministic functions without the knowledge of its smoothness,
 #' \emph{NIPS}, 783-791. \cr \cr
